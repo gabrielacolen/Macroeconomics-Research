@@ -1,26 +1,27 @@
-# CAMBIO
-install.packages("BETS")
-install.packages(c("ggplot2", "scales", "Quandl"))
-
-# ggplot2 <- criar gráficos
+library(rbcb)
+library(dplyr)
 library(ggplot2)
-# scales <- formatar o eixo X com datas
-library(scales)
-# Quandl <- dados temporais do site quandl
-library(Quandl)
-# BETS <- pacote "Brazilian Economic Time Series" que acessa diretamente do BC
-library(BETS)
 
-# Pegando os dados de câmbio desde 1999
-cambio <- BETSget(3697, from = "1999-07-01")
-head(cambio)
-str(cambio)
+taxa_cambio_compra = get_series(10813, start_date = "2024-01-01")
 
-# Plotando o gráfico
-ggplot(cambio, aes(x = date, y = value)) +
-  geom_line(linewidth = 0.8, colour = "darkblue") +  # Corrigido 'size' para 'linewidth'
-  xlab("") + 
-  ylab("R$/US$") +
-  ggtitle("Taxa de Câmbio R$/US$") +
-  scale_x_date(breaks = date_breaks("1 year"), labels = date_format("%Y")) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# Certifique-se de que o dataframe cambio_compra está correto
+cambio_compra <- taxa_cambio_compra %>%
+  rename(data = date, taxa_cambio = "10813") %>%
+  mutate(ano_mes = format(data, "%Y-%m"))
+
+# Plotar o gráfico
+ggplot(cambio_compra, aes(x = data, y = taxa_cambio)) +  # Use taxa_cambio, não cambio_compra
+  geom_line(color = "blue", linewidth = 1.5) +  # Use linewidth em vez de size
+  labs(
+    title = "Taxa de Câmbio de Compra (USD/BRL)",  # Título do gráfico
+    x = "Data",  # Rótulo do eixo X
+    y = "Taxa de Câmbio (R$)",  # Rótulo do eixo Y
+    caption = "Fonte: Banco Central do Brasil"  # Fonte dos dados
+  ) +
+  theme_minimal() +  # Tema minimalista
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Centralizar e formatar o título
+    axis.title.x = element_text(size = 12),  # Formatar rótulo do eixo X
+    axis.title.y = element_text(size = 12),  # Formatar rótulo do eixo Y
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotacionar rótulos do eixo X
+  )
