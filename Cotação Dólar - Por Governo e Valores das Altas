@@ -1,0 +1,26 @@
+ggplot(cambio_compra_gov, aes(x = data, y = taxa_cambio_gov, color = governo)) + 
+  geom_line(linewidth = 0.5) +  
+  geom_point(data = max_cambio_por_governo, aes(x = data_max_taxa_cambio, y = max_taxa_cambio), 
+             size = 3, shape = 21, fill = "white", stroke = 1.5) +  
+  geom_text(data = max_cambio_por_governo, 
+            aes(x = data_max_taxa_cambio, y = max_taxa_cambio, 
+                label = paste0("R$ ", round(max_taxa_cambio, 2))), 
+            vjust = -1.5, hjust = 0.5, size = 4, color = "black") +  
+  scale_color_manual(values = c("Dilma" = "darkred", "Temer" = "blue", "Bolsonaro" = "darkgreen", "Lula" = "red")) +  
+  scale_y_continuous(expand = expansion(mult = c(0.1, 0.2))) +  # Adicionar 10% abaixo e 20% acima dos dados
+  labs(
+    title = "Taxa de Câmbio de Compra (USD/BRL)",
+    subtitle = "Evolução conforme o governo",
+    x = "Data",
+    y = "Taxa de Câmbio (R$)",
+    caption = "Fonte: Banco Central do Brasil",
+    color = "Governo"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
