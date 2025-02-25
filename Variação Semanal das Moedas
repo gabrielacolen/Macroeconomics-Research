@@ -1,0 +1,92 @@
+library(quantmod)
+library(ggplot2)
+
+# Função para obter dados e calcular variações
+obter_dados_moeda <- function(codigo_moeda, data_inicio) {
+  # Obter dados da moeda usando o pacote quantmod
+  dados_moeda <- getSymbols(codigo_moeda, src = "yahoo", from = data_inicio, auto.assign = FALSE)
+  
+  # Criar um data frame com os dados
+  df_moeda <- data.frame(Data = index(dados_moeda), coredata(dados_moeda))
+  colnames(df_moeda) <- c("Data", "Abertura", "Maximo", "Minimo", "Fechamento", "Volume", "Ajustado")
+  
+  # Calcular médias e variações
+  data_atual <- Sys.Date()
+  inicio_ultima_semana <- data_atual - 7
+  inicio_penultima_semana <- data_atual - 14
+  
+  # Filtrar dados da última semana
+  df_ultima_semana <- subset(df_moeda, Data >= inicio_ultima_semana & Data <= data_atual)
+  media_ultima_semana <- mean(df_ultima_semana$Ajustado)
+  
+  # Filtrar dados da penúltima semana
+  df_penultima_semana <- subset(df_moeda, Data >= inicio_penultima_semana & Data <= inicio_ultima_semana)
+  media_penultima_semana <- mean(df_penultima_semana$Ajustado)
+  
+  # Calcular variação percentual
+  variacao_percentual <- ((media_ultima_semana - media_penultima_semana) / media_penultima_semana) * 100
+  
+  # Retornar resultados
+  return(list(
+    df_moeda = df_moeda,
+    variacao_percentual = variacao_percentual
+  ))
+}
+
+# Lista de moedas e seus códigos
+moedas <- list(
+  "BRL=X",  # Real Brasileiro
+  "ARS=X",  # Peso Argentino
+  "UYU=X",  # Peso Uruguaio
+  "EUR=X",  # Euro
+  "INR=X",  # Rupia Indiana
+  "ZAR=X"   # Rand Sul-Africano
+)
+
+# Data frame para armazenar todas as cotações
+df_todas_moedas <- data.frame()
+# Data frame para armazenar as variações percentuais
+df_variacoes <- data.frame(Moeda = character(), Variacao = numeric(), stringsAsFactors = FALSE)
+
+# Loop para processar cada moeda
+for (codigo_moeda in moedas) {
+  resultado <- obter_dados_moeda(codigo_moeda, "2025-01-01")
+  
+  # Adicionar dados ao data frame de cotações
+  resultado$df_moeda$Moeda <- codigo_moeda
+  df_todas_moedas <- rbind(df_todas_moedas, resultado$df_moeda)
+  
+  # Adicionar variação ao data frame de variações
+  df_variacoes <- rbind(df_variacoes, data.frame(Moeda = codigo_moeda, Variacao = resultado$variacao_percentual))
+}
+
+# Exibir os data frames
+print(head(df_todas_moedas))
+print(df_variacoes)
+
+# Criar um vetor com os nomes das moedas
+nomes_moedas <- c(
+  "BRL=X" = "Real",
+  "ARS=X" = "Peso Argentino",
+  "UYU=X" = "Peso Uruguaio",
+  "EUR=X" = "Euro",
+  "INR=X" = "Rupia Indiana",
+  "ZAR=X" = "Rand Sul-Africano"
+)
+
+# Adicionar uma coluna com os nomes das moedas ao data frame de variações
+df_variacoes$Nome_Moeda <- nomes_moedas[df_variacoes$Moeda]
+
+# Criar o gráfico
+ggplot(df_variacoes, aes(x = Nome_Moeda, y = Variacao)) +
+  geom_bar(stat = "identity", fill = "steelblue") +  # Barras com cor única
+  geom_text(aes(label = paste0(round(Variacao, 2), "%")),  # Adicionar valores em cima das barras
+            vjust = -0.5,  # Ajustar a posição vertical do texto
+            color = "darkblue",  # Cor do texto
+            size = 4) +  # Tamanho do texto
+  labs(title = "Variação Percentual das Moedas na Última Semana",
+       x = "Moeda",
+       y = "Variação Percentual (%)") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Remover a legenda lateral
+
