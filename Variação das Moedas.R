@@ -2,7 +2,7 @@ library(quantmod)
 library(ggplot2)
 
 # Definir paleta de cores
-cores_padrao <- c( 
+cores_padrao <- c(
   azul_escuro1 = "#002C5E",
   azul_escuro2 = "#02023C",
   amarelo = "#FEB712",
@@ -57,6 +57,7 @@ for (moeda in moedas) {
     warning(paste("Erro ao processar", moeda, ":", conditionMessage(e)))
   })
 }
+
 ggplot(variacao, aes(x = Moeda, y = Variacao)) +
   geom_bar(stat = "identity", fill = cores_padrao["azul_escuro1"]) +  # Barras com cor azul
   geom_text(aes(label = paste0(round(Variacao, 2), "%")),  # Adicionar valores em cima das barras
@@ -64,15 +65,14 @@ ggplot(variacao, aes(x = Moeda, y = Variacao)) +
             color = cores_padrao["cinza_claro"],  # Cor do texto
             size = 4) +  # Tamanho do texto
   labs(
-    title = paste("Variação Percentual Semanal"), 
+    title = paste("Variação Percentual Semanal"),
     y = "Variação Percentual (%)",
     caption = paste("Fonte: Yahoo Finance | Atualizado em", format(ultima_sexta, "%d/%m/%Y"))
   ) +
   theme_minimal() +
   theme(
-    legend.position = "none",  # Remover legenda lateral
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10, color = "black"),  # Ajuste dos rótulos no eixo X
+    axis.text.x = element_text(size = 8, color = "black"),  # Ajuste dos rótulos no eixo X
     axis.text.y = element_text(size = 10, color = "black"),
-    plot.title = element_text(hjust = 0.5, size = 14, face = "bold", color = "black"),
-    plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")  # Ajuste da legenda
+    plot.title = element_text(hjust = 0.5, size = 14, color = "black"),
+    plot.caption = element_text(hjust = 1, vjust = 1, size = 10, color = "gray50") # Ajuste da legenda para o canto inferior direito
   )
