@@ -1,0 +1,63 @@
+library(ggplot2)
+library(dplyr)
+library(rbcb)
+
+# --- Paleta de cores padrão ---
+cores_padrao <- c(
+  azul_escuro1 = "#002C5E",
+  azul_escuro2 = "#02023C",
+  amarelo = "#FEB712",
+  cinza_claro = "#A6A6A6",
+  cinza_escuro = "#3A3A3A",
+  azul_claro = "#46B1E1"
+)
+
+# --- Importar séries do SGS ---
+divida_bruta_governo_geral <- get_series(13762, start_date = "2015-01-01", end_date = "2025-04-01") %>%
+  rename(data = date, percentual_pib = `13762`) %>%
+  mutate(tipo = "Dívida Bruta")
+
+divida_liquida_governo_geral <- get_series(4536, start_date = "2015-01-01", end_date = "2025-04-01") %>%
+  rename(data = date, percentual_pib = `4536`) %>%
+  mutate(tipo = "Dívida Líquida")
+
+# --- Unir, filtrar apenas dezembro e garantir níveis corretos para fator 'tipo' ---
+dados_divida <- bind_rows(
+  divida_bruta_governo_geral %>% mutate(tipo = "Dívida Bruta"),
+  divida_liquida_governo_geral %>% mutate(tipo = "Dívida Líquida")
+) %>%
+  filter(format(data, "%m") == "12") %>%
+  mutate(tipo = factor(tipo, levels = c("Dívida Bruta", "Dívida Líquida")))
+
+
+# --- Gráfico ---
+ggplot(dados_divida, aes(x = data, y = percentual_pib, color = tipo)) +
+  geom_line(linewidth = 1.2) +
+  scale_color_manual(values = c(
+    "Dívida Bruta" = unname(cores_padrao["amarelo"]),
+    "Dívida Líquida" = unname(cores_padrao["azul_escuro1"])
+  ))  +
+  scale_y_continuous(breaks = seq(30, 100, by = 10)) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  labs(
+    title = "Dívida Bruta e Líquida do Governo Geral",
+    subtitle = "(% do PIB, dados de dezembro de cada ano)",
+    x = NULL,
+    y = "% do PIB",
+    color = "Indicador",
+    caption = "Fonte: Banco Central do Brasil (SGS)"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    axis.line.x = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    axis.line.y = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
+    axis.title = element_text(size = 12),
+    axis.text.x = element_text(hjust = 1),
+    legend.position = "top",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")
+  )
