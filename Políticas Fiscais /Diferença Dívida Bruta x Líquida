@@ -1,0 +1,75 @@
+# Até final de 2024
+
+library(ggplot2)
+library(dplyr)
+library(rbcb) 
+
+# Paleta de cores institucional
+cores_padrao <- c( 
+  azul_escuro1 = "#002C5E",
+  azul_escuro2 = "#02023C",
+  amarelo = "#FEB712",
+  cinza_claro = "#A6A6A6",
+  cinza_escuro = "#3A3A3A",
+  azul_claro = "#46B1E1"
+)
+
+# Importar e processar dados
+dados_bruta <- get_series(13762, start_date = "2015-01-01", end_date = "2024-12-31") %>%
+  rename(data = date, bruta = `13762`)
+
+dados_liquida <- get_series(4536, start_date = "2015-01-01", end_date = "2024-12-31") %>%
+  rename(data = date, liquida = `4536`)
+
+# Combinar e calcular diferença
+dados_combinados <- left_join(dados_bruta, dados_liquida, by = "data") %>%
+  mutate(diferenca = bruta - liquida)
+
+# Calcular média da diferença
+media_diferenca <- mean(dados_combinados$diferenca, na.rm = TRUE)
+
+# Criar gráfico
+ggplot(dados_combinados, aes(x = data, y = diferenca)) +
+  geom_line(color = cores_padrao["azul_escuro1"], size = 1.2) +
+  geom_hline(yintercept = media_diferenca, linetype = "dashed", color = cores_padrao["amarelo"], size = 1) +
+  labs(
+    title = "Diferença entre Dívida Bruta e Líquida do Governo Geral",
+    subtitle = "Em percentual do PIB (2015–2025)",
+    x = "Data",
+    y = "Diferença (p.p. do PIB)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+
+# Gráfico com anotação da média
+ggplot(dados_combinados, aes(x = data, y = diferenca)) +
+  geom_line(color = cores_padrao["azul_escuro1"], size = 1.2) +
+  geom_hline(yintercept = media_diferenca, linetype = "dashed", color = cores_padrao["amarelo"], size = 1) +
+  annotate("text", x = as.Date("2024-06-01"), y = media_diferenca + 1, 
+           label = paste0("Média: ", round(media_diferenca, 1), " p.p."), 
+           color = cores_padrao["amarelo"], size = 4.5, fontface = "bold") +
+  labs(
+    title = "Diferença entre Dívida Bruta e Líquida do Governo Geral",
+    subtitle = "Em percentual do PIB (2015–2025)",
+    x = NULL,
+    y = "p.p. do PIB"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    axis.line.x = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    axis.line.y = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
+    axis.title = element_text(size = 12),
+    axis.text.x = element_text(hjust = 1),
+    legend.position = "top",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")
+  )
