@@ -1,0 +1,30 @@
+divida_liquita_setor_publico <- get_series(4513, start_date = "2015-02-01", end_date = "2025-04-01") %>%
+  rename(data = date, percentual_pib = `4513`)
+
+# Gráfico padronizado
+ggplot(divida_liquita_setor_publico, aes(x = data, y = percentual_pib)) +
+  geom_line(color = cores_padrao["azul_escuro1"], linewidth = 1.2) +  # Linha principal
+  geom_hline(yintercept = mean(divida_liquita_setor_publico$percentual_pib, na.rm = TRUE), 
+             color = cores_padrao["cinza_escuro"], linetype = "dashed", linewidth = 1) +  # Média
+  labs(
+    title = "Dívida Líquida do Setor Público",
+    x = NULL,
+    y = "% PIB",
+    caption = "Fonte: Banco Central do Brasil"
+  ) +
+  scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    axis.line.x = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    axis.line.y = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(hjust = 1),
+    plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")
+  )
