@@ -1,0 +1,38 @@
+anos <- 2000:2024
+receita_pib <- c(29.46, 30.73, 32.12, 31.37, 32.38, 33.57, 33.29, 33.64, 33.50, 32.24, 
+                 32.51, 33.35, 32.62, 32.55, 31.84, 32.10, 32.26, 32.28, 32.58, 32.53, 
+                 30.91, 32.53, 33.01, 32.11, 34.24)
+
+dados_receita <- data.frame(
+  ano = as.Date(paste0(anos, "-01-01")),  # Converter para Date
+  receita_pib = receita_pib
+)
+
+
+# Gráfico
+ggplot(dados_receita, aes(x = ano, y = receita_pib)) +
+  geom_line(color = cores_padrao["azul_escuro1"], linewidth = 1.2) +  # Linha principal
+  geom_hline(yintercept = mean(dados_receita$receita_pib), 
+             color = cores_padrao["cinza_escuro"], linetype = "dashed", linewidth = 1) +  # Média
+  labs(
+    title = "Receita Tributária Bruta",
+    x = NULL,
+    y = "% PIB",
+    caption = "Fonte: FGV IBRE"
+  ) +
+  scale_x_date(
+    date_breaks = "2 year",
+    date_labels = "%Y"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    axis.line.x = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    axis.line.y = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(hjust = 1),
+    plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")
+  )
