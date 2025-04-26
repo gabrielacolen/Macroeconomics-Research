@@ -1,3 +1,16 @@
+library(ggplot2)
+library(rbcb)
+library(dplyr)
+
+cores_padrao <- c(
+  azul_escuro1 = "#002C5E",
+  azul_escuro2 = "#02023C",
+  amarelo = "#FEB712",
+  cinza_claro = "#A6A6A6",
+  cinza_escuro = "#3A3A3A",
+  azul_claro = "#46B1E1"
+)
+
 divida_liquita_setor_publico <- get_series(4513, start_date = "2015-02-01", end_date = "2025-04-01") %>%
   rename(data = date, percentual_pib = `4513`)
 
@@ -5,7 +18,10 @@ divida_liquita_setor_publico <- get_series(4513, start_date = "2015-02-01", end_
 ggplot(divida_liquita_setor_publico, aes(x = data, y = percentual_pib)) +
   geom_line(color = cores_padrao["azul_escuro1"], linewidth = 1.2) +  # Linha principal
   geom_hline(yintercept = mean(divida_liquita_setor_publico$percentual_pib, na.rm = TRUE), 
-             color = cores_padrao["cinza_escuro"], linetype = "dashed", linewidth = 1) +  # Média
+             color = cores_padrao["amarelo"], linetype = "dashed", linewidth = 1) +  # Média
+  annotate("text", x = as.Date("2024-06-01"), y = mean(divida_liquita_setor_publico$percentual_pib) + 1, 
+           label = paste0("Média: ", round(mean(divida_liquita_setor_publico$percentual_pib), 1), " p.p."), 
+           color = cores_padrao["amarelo"], size = 4.5, fontface = "bold") +
   labs(
     title = "Dívida Líquida do Setor Público",
     x = NULL,
