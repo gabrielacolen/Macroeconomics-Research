@@ -1,0 +1,76 @@
+library(ggplot2)
+library(dplyr)
+library(rbcb) 
+
+# Paleta de cores institucional
+cores_padrao <- c( 
+  azul_escuro1 = "#002C5E",
+  azul_escuro2 = "#02023C",
+  amarelo = "#FEB712",
+  cinza_claro = "#A6A6A6",
+  cinza_escuro = "#3A3A3A",
+  azul_claro = "#46B1E1"
+)
+
+# Importar e processar dados
+dados_bruta <- get_series(13762, start_date = "2015-01-01", end_date = "2024-12-31") %>%
+  rename(data = date, bruta = `13762`)
+
+# Dados de dívida (% do PIB) de 2015 a 2030
+anos <- 2015:2024
+data <- as.Date(paste0(anos, "-01-01"))
+divida_pct_pib <- c(71.7, 77.4, 82.7, 84.8, 87.1, 96.0, 88.9, 83.9, 84.0, 87.3)
+
+dados_divida_fmi <- data.frame(
+  data = data,
+  ano = anos,
+  percentual_pib = divida_pct_pib
+)
+
+# Combinar e calcular diferença
+dados_combinados <- left_join(dados_divida_fmi, dados_bruta, by = "data") %>%
+  mutate(diferenca = percentual_pib - bruta)
+
+# Calcular média da diferença
+media_diferenca <- mean(dados_combinados$diferenca, na.rm = TRUE)
+
+# Criar gráfico
+ggplot(dados_combinados, aes(x = data, y = diferenca)) +
+  geom_line(
+    data = dados_divida_fmi,
+    aes(x = data, y = percentual_pib, color = "FMI"),
+    size = 1.2
+  ) +
+  # Linha do BC em azul escuro
+  geom_line(
+    data = dados_bruta,
+    aes(x = data, y = bruta,       color = "Banco Central"),
+    size = 1.2
+  ) +
+  # Definição manual das cores
+  scale_color_manual(
+    name   = "",
+    values = c(
+      "FMI"            = cores_padrao[["amarelo"]],
+      "Banco Central"  = cores_padrao[["azul_escuro1"]]
+    )
+  ) +
+  labs(
+    title = "Diferença entre Dívida Bruta Governo Geral pelo FMI e pelo BC",
+    subtitle = "(Comparativo entre 2015 e 2024 - % PIB)",
+    x = NULL,
+    y = "% PIB",
+    caption = "Fonte: FMI (Fiscal Monitor) e BCB"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10),
+    axis.text.x = element_text(hjust = 1),
+    legend.position = "top",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")
+  )
