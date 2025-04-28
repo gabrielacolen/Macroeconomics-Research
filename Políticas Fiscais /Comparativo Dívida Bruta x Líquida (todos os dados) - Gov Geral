@@ -13,11 +13,11 @@ cores_padrao <- c(
 )
 
 # --- Importar séries do SGS ---
-divida_bruta_governo_geral <- get_series(13762, start_date = "2015-01-01", end_date = "2025-04-01") %>%
+divida_bruta_governo_geral <- get_series(13762, start_date = "2019-01-01", end_date = "2025-04-01") %>%
   rename(data = date, percentual_pib = `13762`) %>%
   mutate(tipo = "Dívida Bruta")
 
-divida_liquida_governo_geral <- get_series(4536, start_date = "2015-01-01", end_date = "2025-04-01") %>%
+divida_liquida_governo_geral <- get_series(4536, start_date = "2019-01-01", end_date = "2025-04-01") %>%
   rename(data = date, percentual_pib = `4536`) %>%
   mutate(tipo = "Dívida Líquida")
 
