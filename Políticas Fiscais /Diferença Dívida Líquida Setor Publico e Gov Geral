@@ -1,0 +1,61 @@
+library(ggplot2)
+library(dplyr)
+library(rbcb)
+
+# --- Paleta de cores padrão ---
+cores_padrao <- c(
+  azul_escuro1 = "#002C5E",
+  azul_escuro2 = "#02023C",
+  amarelo = "#FEB712",
+  cinza_claro = "#A6A6A6",
+  cinza_escuro = "#3A3A3A",
+  azul_claro = "#46B1E1"
+)
+
+# --- Importar e preparar dados ---
+divida_setor_publico <- get_series(4513, start_date = "2019-01-01", end_date = "2025-04-01") %>%
+  rename(data = date, percentual_pib = `4513`) %>%
+  mutate(tipo = "Dívida Setor Público")
+
+divida_governo_geral <- get_series(4536, start_date = "2019-01-01", end_date = "2025-04-01") %>%
+  rename(data = date, percentual_pib = `4536`) %>%
+  mutate(tipo = "Dívida Governo Geral")
+
+# --- Combinar dados e ajustar fatores ---
+dados_divida <- bind_rows(
+  divida_setor_publico,
+  divida_governo_geral
+) %>%
+  mutate(tipo = factor(tipo, levels = c("Dívida Setor Público", "Dívida Governo Geral")))
+
+df_diff <- divida_setor_publico %>%
+  inner_join(divida_governo_geral, by = "data", suffix = c("_setor", "_governo")) %>%
+  mutate(diferenca = percentual_pib_setor - percentual_pib_governo)
+
+ggplot(df_diff, aes(x = data, y = diferenca)) +
+  geom_line(color = cores_padrao["azul_escuro1"], size = 1.2) +
+  geom_hline(yintercept = mean(df_diff$diferenca, na.rm = TRUE),
+             linetype = "dashed", color = cores_padrao["amarelo"], size = 1) +
+  annotate("text", x = as.Date("2023-12-01"),
+           y = mean(df_diff$diferenca, na.rm = TRUE) + 0.5,
+           label = paste0("Média: ", round(mean(df_diff$diferenca, na.rm = TRUE), 1), " p.p."),
+           color = cores_padrao["amarelo"], size = 4.5, fontface = "bold") +
+  labs(
+    title = "Diferença entre Dívida Líquida do Setor Público \ne do Governo Geral",
+    x = NULL,
+    y = "p.p. do PIB",
+    caption = "Fonte: Banco Central do Brasil"
+  ) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  theme_minimal() +
+  theme(
+    panel.grid.minor    = element_blank(),
+    panel.background    = element_blank(),
+    axis.line.x         = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    axis.line.y         = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    plot.title          = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle       = element_text(hjust = 0.5, size = 12, face = "italic"),
+    axis.title          = element_text(size = 12),
+    axis.text.x         = element_text(hjust = 1),
+    plot.caption        = element_text(hjust = 0.5, size = 10, color = "gray50")
+  )
