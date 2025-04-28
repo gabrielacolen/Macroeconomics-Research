@@ -13,11 +13,11 @@ cores_padrao <- c(
 )
 
 # --- Importar e preparar dados ---
-divida_setor_publico <- get_series(4513, start_date = "2015-01-01", end_date = "2025-04-01") %>%
+divida_setor_publico <- get_series(4513, start_date = "2019-01-01", end_date = "2025-04-01") %>%
   rename(data = date, percentual_pib = `4513`) %>%
   mutate(tipo = "Dívida Setor Público")
 
-divida_governo_geral <- get_series(4536, start_date = "2015-01-01", end_date = "2025-04-01") %>%
+divida_governo_geral <- get_series(4536, start_date = "2019-01-01", end_date = "2025-04-01") %>%
   rename(data = date, percentual_pib = `4536`) %>%
   mutate(tipo = "Dívida Governo Geral")
 
@@ -33,7 +33,7 @@ ggplot(dados_divida, aes(x = data, y = percentual_pib, color = tipo)) +
   geom_line(linewidth = 1.2) +
   scale_color_manual(
     values = c(
-      "Dívida Setor Público" = cores_padrao["azul_claro"] %>% unname(),
+      "Dívida Setor Público" = cores_padrao["amarelo"] %>% unname(),
       "Dívida Governo Geral" = cores_padrao["azul_escuro1"] %>% unname()
     )
   ) +
@@ -47,8 +47,8 @@ ggplot(dados_divida, aes(x = data, y = percentual_pib, color = tipo)) +
     expand = expansion(mult = c(0.02, 0.02))
   ) +
   labs(
-    title = "Evolução da Dívida Líquida do Setor Público e Governo Geral",
-    subtitle = "Comparativo - Percentual do PIB",
+    title = "Dívida Líquida do Setor Público e Governo Geral",
+    subtitle = "Comparativo - % PIB",
     x = NULL,
     y = "% do PIB",
     color = "Indicador:",
@@ -67,3 +67,4 @@ ggplot(dados_divida, aes(x = data, y = percentual_pib, color = tipo)) +
     legend.title = element_text(size = 11, face = "bold"),
     legend.text = element_text(size = 10),
     plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")  )
+
