@@ -12,9 +12,9 @@ cores_padrao <- c(
 )
 
 # Dados de dívida (% do PIB) de 2015 a 2030
-anos <- 2015:2030
+anos <- 2019:2030
 data <- as.Date(paste0(anos, "-01-01"))
-divida_pct_pib <- c(71.7, 77.4, 82.7, 84.8, 87.1, 96.0, 88.9, 83.9, 84.0, 87.3, 92.0, 96.0, 98.1, 99.1, 99.4, 99.4)
+divida_pct_pib <- c( 87.1, 96.0, 88.9, 83.9, 84.0, 87.3, 92.0, 96.0, 98.1, 99.1, 99.4, 99.4)
 
 dados_divida <- data.frame(
   data = data,
@@ -46,7 +46,7 @@ ggplot() +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   labs(
     title = "Dívida Bruta do Governo Geral",
-    subtitle = "(% do PIB, 2015–2030) - Projeção a partir de 2025",
+    subtitle = "(% do PIB) Projeção de 2025 - 2030",
     x = NULL,
     y = "% do PIB",
     linetype = "Tipo de Dado",
@@ -66,4 +66,3 @@ ggplot() +
     legend.text = element_text(size = 10),
     plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")
   )
-
