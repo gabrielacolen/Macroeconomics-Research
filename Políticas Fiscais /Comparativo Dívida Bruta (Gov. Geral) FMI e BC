@@ -13,13 +13,12 @@ cores_padrao <- c(
 )
 
 # Importar e processar dados
-dados_bruta <- get_series(13762, start_date = "2015-01-01", end_date = "2024-12-31") %>%
+dados_bruta <- get_series(13762, start_date = "2019-01-01", end_date = "2024-1-31") %>%
   rename(data = date, bruta = `13762`)
 
-# Dados de dívida (% do PIB) de 2015 a 2030
-anos <- 2015:2024
+anos <- 2019:2024
 data <- as.Date(paste0(anos, "-01-01"))
-divida_pct_pib <- c(71.7, 77.4, 82.7, 84.8, 87.1, 96.0, 88.9, 83.9, 84.0, 87.3)
+divida_pct_pib <- c(87.1, 96.0, 88.9, 83.9, 84.0, 87.3)
 
 dados_divida_fmi <- data.frame(
   data = data,
@@ -56,8 +55,8 @@ ggplot(dados_combinados, aes(x = data, y = diferenca)) +
     )
   ) +
   labs(
-    title = "Diferença entre Dívida Bruta Governo Geral pelo FMI e pelo BC",
-    subtitle = "(Comparativo entre 2015 e 2024 - % PIB)",
+    title = "Dívida Bruta Governo Geral pelo FMI e pelo BC",
+    subtitle = "(Comparativo até 2024 - % PIB)",
     x = NULL,
     y = "% PIB",
     caption = "Fonte: FMI (Fiscal Monitor) e BCB"
@@ -73,4 +72,9 @@ ggplot(dados_combinados, aes(x = data, y = diferenca)) +
     legend.title = element_text(size = 10),
     legend.text = element_text(size = 10),
     plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")
+  )+
+  scale_x_date(
+    date_breaks = "1 year",  # Quebra de 1 em 1 ano
+    date_labels = "%Y"       # Formato de exibição do ano
   )
+
