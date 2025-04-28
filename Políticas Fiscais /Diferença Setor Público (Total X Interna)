@@ -13,10 +13,10 @@ cores_padrao <- c(
 )
 
 # --- Importar séries do SGS ---
-divida_total <- get_series(4513, start_date = "2015-01-01", end_date = "2025-04-01") %>%
+divida_total <- get_series(4513, start_date = "2019-01-01", end_date = "2025-04-01") %>%
   rename(data = date, total = `4513`)
 
-divida_interna <- get_series(4524, start_date = "2015-01-01", end_date = "2025-04-01") %>%
+divida_interna <- get_series(4524, start_date = "2019-01-01", end_date = "2025-04-01") %>%
   rename(data = date, interna = `4524`)
 
 # --- Calcular diferença (Total – Interna = Externa) ---
@@ -45,7 +45,7 @@ ggplot(df_diff, aes(x = data, y = diferenca)) +
     fontface = "bold"
   ) +
   labs(
-    title    = "Diferença entre Dívida Total e Interna do Setor Público (% do PIB)",
+    title    = "Diferença entre Dívida Líquida Total e Interna do Setor Público (% do PIB)",
     x        = NULL,
     y        = "p.p. do PIB",
     caption  = "Fonte: Banco Central do Brasil (SGS)"
