@@ -15,10 +15,10 @@ cores_padrao <- c(
 )
 
 # Importar e processar dados
-dados_bruta <- get_series(13762, start_date = "2015-01-01", end_date = "2024-12-31") %>%
+dados_bruta <- get_series(13762, start_date = "2019-01-01", end_date = "2024-12-31") %>%
   rename(data = date, bruta = `13762`)
 
-dados_liquida <- get_series(4536, start_date = "2015-01-01", end_date = "2024-12-31") %>%
+dados_liquida <- get_series(4536, start_date = "2019-01-01", end_date = "2024-12-31") %>%
   rename(data = date, liquida = `4536`)
 
 # Combinar e calcular diferença
@@ -50,14 +50,14 @@ ggplot(dados_combinados, aes(x = data, y = diferenca)) +
 ggplot(dados_combinados, aes(x = data, y = diferenca)) +
   geom_line(color = cores_padrao["azul_escuro1"], size = 1.2) +
   geom_hline(yintercept = media_diferenca, linetype = "dashed", color = cores_padrao["amarelo"], size = 1) +
-  annotate("text", x = as.Date("2024-06-01"), y = media_diferenca + 1, 
+  annotate("text", x = as.Date("2024-06-01"), y = media_diferenca + 0.5, 
            label = paste0("Média: ", round(media_diferenca, 1), " p.p."), 
            color = cores_padrao["amarelo"], size = 4.5, fontface = "bold") +
   labs(
     title = "Diferença entre Dívida Bruta e Líquida do Governo Geral",
-    subtitle = "Em percentual do PIB (2015–2025)",
     x = NULL,
-    y = "p.p. do PIB"
+    y = "p.p. do PIB",
+    caption = " Fonte: Banco Central do Brasil (SGS)"
   ) +
   theme_minimal() +
   theme(
@@ -72,4 +72,8 @@ ggplot(dados_combinados, aes(x = data, y = diferenca)) +
     legend.title = element_text(size = 10),
     legend.text = element_text(size = 10),
     plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")
+  )+
+  scale_x_date(
+    date_breaks = "1 year",  # Quebra de 1 em 1 ano
+    date_labels = "%Y"       # Formato de exibição do ano
   )
