@@ -1,0 +1,94 @@
+library(readxl)      # para ler .xlsx
+library(dplyr)       # para manipulação
+library(lubridate)   # para converter ano‑mês em Date
+library(ggplot2)     # para o gráfico
+
+cores_padrao <- c(
+  azul_escuro1 = "#002C5E",
+  azul_escuro2 = "#02023C",
+  amarelo      = "#FEB712",
+  cinza_claro  = "#A6A6A6",
+  cinza_escuro = "#3A3A3A",
+  azul_claro   = "#46B1E1"
+)
+
+caminho <-  "C:/Users/User/Desktop/Macro/Mercado de trabalho/PNADc_IPEA.xls"
+
+df <- read_excel(caminho, sheet = "Mensalizadas") %>%
+  select(anomesexato = 1, taxa_desocup = 5) %>%
+  mutate(
+    data      = ymd(paste0(anomesexato, "01")),
+    ano       = year(data)
+  ) %>%
+  filter(data >= as.Date("2016-01-01"),
+         data <= as.Date("2025-12-01"))
+
+# extrai máximo e mínimo de cada ano
+df_max <- df %>%
+  group_by(ano) %>%
+  slice_max(taxa_desocup, n = 1, with_ties = FALSE)
+
+df_min <- df %>%
+  group_by(ano) %>%
+  slice_min(taxa_desocup, n = 1, with_ties = FALSE)
+
+media_td <- mean(df$taxa_desocup, na.rm = TRUE)
+
+# junta em um só DF e marca tipo
+df_year_peaks <- bind_rows(
+  df_max %>% mutate(type = "max"),
+  df_min %>% mutate(type = "min")
+)
+
+
+ggplot(df, aes(x = data, y = taxa_desocup)) +
+  geom_line(color = cores_padrao["azul_escuro1"], linewidth = 1.2) +
+  geom_point(data = df_year_peaks,
+             aes(x = data, y = taxa_desocup),
+             color = cores_padrao["amarelo"], size = 3) +
+  geom_text(data = df_year_peaks,
+            aes(x = data, y = taxa_desocup, label = round(taxa_desocup, 1)),
+            vjust = ifelse(df_year_peaks$type == "max", -1.2, 1.5),
+            size = 3.5, fontface = "bold", color = cores_padrao["amarelo"]) +
+  
+  geom_hline(yintercept = media_td,
+             color = cores_padrao["amarelo"],
+             linetype = "dashed", linewidth = 1) +
+  annotate("text",
+           x     = as.Date("2024-06-01"),
+           y     = media_td + 0.5,
+           label = paste0("Média: ", round(media_td, 1), " p.p."),
+           color = cores_padrao["amarelo"],
+           size = 4.5, fontface = "bold") +
+  
+  labs(
+    title   = "Taxa de Desocupação",
+    subtitle = "Em %, 2016 - 2025",
+    x       = NULL,
+    y       = "%",
+    caption = "Fonte: PNADc"
+  ) +
+  scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y",
+    expand      = expansion(add = c(30, 30))   # 30 dias de folga nas laterais
+  ) +
+  scale_y_continuous(
+    expand = expansion(add = c(0.5, 0.5))      # folga de 0.5 p.p. em y
+  ) +
+  
+  coord_cartesian(clip = "off") +              # permite anotações fora da área “segura”
+  
+  theme_minimal() +
+  theme(
+    panel.grid.minor   = element_blank(),
+    panel.background   = element_blank(),
+    axis.line.x        = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    axis.line.y        = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
+    plot.title         = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.text.x        = element_text(size = 10),
+    plot.caption       = element_text(hjust = 0.5, size = 10, color = "gray50"),
+    plot.margin        = margin(t = 10, r = 20, b = 10, l = 10)  # margens em pts
+  )
+
