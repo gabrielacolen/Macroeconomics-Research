@@ -1,0 +1,104 @@
+# Carregamento das bibliotecas
+library(readxl)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+
+# Paleta de cores personalizada
+cores_padrao <- c(
+  azul_escuro1 = "#002C5E",
+  azul_escuro2 = "#02023C",
+  amarelo      = "#FEB712",
+  cinza_claro  = "#A6A6A6",
+  cinza_escuro = "#3A3A3A",
+  azul_claro   = "#46B1E1"
+)
+
+# Caminho do arquivo Excel
+caminho_arquivo <- "C:/Users/202407096395/Desktop/PNADc_IPEA.xls"
+
+# Importação e tratamento dos dados
+subutilizacao_df <- read_excel(caminho_arquivo, sheet = "Mensalizadas") %>%
+  select(anomesexato = 1, taxa_subutilizacao = 7) %>%  
+  mutate(
+    data = ymd(paste0(anomesexato, "01")),
+    ano  = year(data)
+  ) %>%
+  filter(data >= as.Date("2019-01-01"),
+         data <= as.Date("2025-12-01"))
+
+# Cálculo da média da taxa
+media_subutilizacao <- mean(subutilizacao_df$taxa_subutilizacao, na.rm = TRUE)
+
+# Identificação do ponto mínimo e máximo de toda a série
+ponto_max <- subutilizacao_df %>%
+  slice_max(taxa_subutilizacao, n = 1, with_ties = FALSE) %>%
+  mutate(tipo = "max")
+
+ponto_min <- subutilizacao_df %>%
+  slice_min(taxa_subutilizacao, n = 1, with_ties = FALSE) %>%
+  mutate(tipo = "min")
+
+# Combinação dos extremos em um único data frame
+extremos_df <- bind_rows(ponto_max, ponto_min)
+
+# Criação do gráfico
+ggplot(subutilizacao_df, aes(x = data, y = taxa_subutilizacao)) +
+  geom_line(color = cores_padrao["azul_escuro1"], linewidth = 1.2) +
+  
+  # Destaques dos pontos máximo e mínimo
+  geom_point(data = extremos_df,
+             aes(x = data, y = taxa_subutilizacao),
+             color = cores_padrao["amarelo"], size = 3) +
+  
+  geom_text(data = extremos_df,
+            aes(label = round(taxa_subutilizacao, 1)),
+            vjust = ifelse(extremos_df$tipo == "max", -1.2, -2.5),
+            size = 3.5, fontface = "bold", color = cores_padrao["amarelo"]) +
+  
+  # Linha da média
+  geom_hline(yintercept = media_subutilizacao,
+             color = cores_padrao["amarelo"],
+             linetype = "dashed", linewidth = 1) +
+  
+  annotate("text",
+           x     = as.Date("2024-06-01"),
+           y     = media_subutilizacao + 0.5,
+           label = paste0("Média: ", round(media_subutilizacao, 1), " p.p."),
+           color = cores_padrao["amarelo"],
+           size = 4.5, fontface = "bold") +
+  
+
+  
+  labs(
+    title    = "Taxa de Subutilização",
+    subtitle = "Em %, 2019 - 2025",
+    x        = NULL,
+    y        = NULL,
+    caption  = "Fonte: PNADc"
+  ) +
+  
+  scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y",
+    expand = expansion(add = c(30, 30))
+  ) +
+  
+  scale_y_continuous(
+    expand = expansion(add = c(0.5, 0.5))
+  ) +
+  
+  coord_cartesian(clip = "off") +
+  
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    axis.line.x = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    axis.line.y = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
+    axis.text.x = element_text(size = 10),
+    plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50"),
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 10)
+  )
