@@ -1,10 +1,8 @@
-# Carregamento das bibliotecas
-library(readxl)
-library(dplyr)
-library(lubridate)
-library(ggplot2)
+library(readxl)      # para ler .xlsx
+library(dplyr)       # para manipulação
+library(lubridate)   # para converter ano‑mês em Date
+library(ggplot2)     # para o gráfico
 
-# Paleta de cores personalizada
 cores_padrao <- c(
   azul_escuro1 = "#002C5E",
   azul_escuro2 = "#02023C",
@@ -14,12 +12,11 @@ cores_padrao <- c(
   azul_claro   = "#46B1E1"
 )
 
-# Caminho do arquivo Excel
-caminho_arquivo <- "C:/Users/202407096395/Desktop/PNADc_IPEA.xls"
+caminho_arquivo <-  "C:/Users/User/Desktop/Macro/Mercado de trabalho/PNADc_IPEA.xls"
 
 # Importação e tratamento dos dados
-subutilizacao_df <- read_excel(caminho_arquivo, sheet = "Mensalizadas") %>%
-  select(anomesexato = 1, taxa_subutilizacao = 7) %>%  
+compostasub_df <- read_excel(caminho_arquivo, sheet = "Mensalizadas") %>%
+  select(anomesexato = 1, taxa_composta = 9) %>%  
   mutate(
     data = ymd(paste0(anomesexato, "01")),
     ano  = year(data)
@@ -28,50 +25,50 @@ subutilizacao_df <- read_excel(caminho_arquivo, sheet = "Mensalizadas") %>%
          data <= as.Date("2025-12-01"))
 
 # Cálculo da média da taxa
-media_subutilizacao <- mean(subutilizacao_df$taxa_subutilizacao, na.rm = TRUE)
+media_composta_subutilizacao <- mean(compostasub_df$taxa_composta, na.rm = TRUE)
 
 # Identificação do ponto mínimo e máximo de toda a série
-ponto_max <- subutilizacao_df %>%
-  slice_max(taxa_subutilizacao, n = 1, with_ties = FALSE) %>%
+ponto_max <- compostasub_df %>%
+  slice_max(taxa_composta, n = 1, with_ties = FALSE) %>%
   mutate(tipo = "max")
 
-ponto_min <- subutilizacao_df %>%
-  slice_min(taxa_subutilizacao, n = 1, with_ties = FALSE) %>%
+ponto_min <- compostasub_df %>%
+  slice_min(taxa_composta, n = 1, with_ties = FALSE) %>%
   mutate(tipo = "min")
 
 # Combinação dos extremos em um único data frame
 extremos_df <- bind_rows(ponto_max, ponto_min)
 
 # Criação do gráfico
-ggplot(subutilizacao_df, aes(x = data, y = taxa_subutilizacao)) +
+ggplot(compostasub_df, aes(x = data, y = taxa_composta)) +
   geom_line(color = cores_padrao["azul_escuro1"], linewidth = 1.2) +
   
   # Destaques dos pontos máximo e mínimo
   geom_point(data = extremos_df,
-             aes(x = data, y = taxa_subutilizacao),
+             aes(x = data, y = taxa_composta),
              color = cores_padrao["amarelo"], size = 3) +
   
   geom_text(data = extremos_df,
-            aes(label = round(taxa_subutilizacao, 1)),
+            aes(label = round(taxa_composta, 1)),
             vjust = ifelse(extremos_df$tipo == "max", -1.2, -2.5),
             size = 3.5, fontface = "bold", color = cores_padrao["amarelo"]) +
   
   # Linha da média
-  geom_hline(yintercept = media_subutilizacao,
+  geom_hline(yintercept = media_composta_subutilizacao,
              color = cores_padrao["amarelo"],
              linetype = "dashed", linewidth = 1) +
   
   annotate("text",
            x     = as.Date("2024-06-01"),
-           y     = media_subutilizacao + 0.5,
-           label = paste0("Média: ", round(media_subutilizacao, 1), " p.p."),
+           y     = media_composta_subutilizacao + 0.5,
+           label = paste0("Média: ", round(media_composta_subutilizacao, 1), " p.p."),
            color = cores_padrao["amarelo"],
            size = 4.5, fontface = "bold") +
   
 
   
   labs(
-    title    = "Taxa de Subutilização",
+    title    = "Taxa de Composta da Subutilização da Força do Trabalho",
     subtitle = "Em %, 2019 - 2025",
     x        = NULL,
     y        = NULL,
