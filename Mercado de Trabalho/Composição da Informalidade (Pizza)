@@ -1,0 +1,98 @@
+# Carregar bibliotecas necessárias
+library(readxl)      # para ler .xlsx
+library(dplyr)       # para manipulação de dados
+library(tidyr)       # para pivotar dados (transformar de largo para longo)
+library(ggplot2)     # para o gráfico
+library(scales)      # para formatar porcentagens
+
+# Definir paleta de cores padrão
+cores_padrao <- c(
+  "Empregado no setor privado sem carteira" = "#002C5E", # azul_escuro1
+  "Trabalhador doméstico sem carteira" = "#02023C",     # azul_escuro2
+  "Empregado no setor público sem carteira" = "#FEB712", # amarelo
+  "Empregador sem CNPJ" = "#A6A6A6",                   # cinza_claro
+  "Conta-própria sem CNPJ" = "#3A3A3A",                # cinza_escuro
+  "Trabalhador familiar auxiliar" = "#46B1E1"           # azul_claro
+)
+
+# Caminho para o arquivo Excel
+caminho_arquivo <- "C:/Users/User/Desktop/Macro/Mercado de trabalho/PNADc_IPEA.xls" # ATENÇÃO: Verifique se este caminho está correto!
+
+# Nomes das categorias de informalidade (para usar nos labels e na legenda)
+nomes_categorias <- c(
+  privado_sem_carteira = "Empregado no setor privado sem carteira",
+  domestico_sem_carteira = "Trabalhador doméstico sem carteira",
+  publico_sem_carteira = "Empregado no setor público sem carteira",
+  empregador_sem_cnpj = "Empregador sem CNPJ",
+  conta_propria_sem_cnpj = "Conta-própria sem CNPJ",
+  familiar_auxiliar = "Trabalhador familiar auxiliar"
+)
+
+# Importação e tratamento dos dados
+dados_informalidade_202503 <- read_excel(caminho_arquivo, sheet = "Mensalizadas") %>%
+  # Selecionar a coluna anomesexato e as colunas de informalidade especificadas
+  # Os números das colunas são baseados na sua descrição (1-indexed)
+  select(
+    anomesexato = 1, # Coluna 1 para anomesexato
+    privado_sem_carteira = 26,
+    domestico_sem_carteira = 29,
+    publico_sem_carteira = 32,
+    empregador_sem_cnpj = 36,
+    conta_propria_sem_cnpj = 39,
+    familiar_auxiliar = 40
+  ) %>%
+  filter(anomesexato == 202503)
+
+# Verificar se os dados foram filtrados corretamente
+if (nrow(dados_informalidade_202503) == 0) {
+  stop("Não foram encontrados dados para anomesexato == 202503. Verifique o arquivo e a data.")
+} else if (nrow(dados_informalidade_202503) > 1) {
+  warning("Mais de uma linha encontrada para anomesexato == 202503. Usando a primeira linha.")
+  dados_informalidade_202503 <- dados_informalidade_202503 %>% head(1)
+}
+
+# Transformar os dados do formato largo para o formato longo, adequado para o ggplot
+dados_longos <- dados_informalidade_202503 %>%
+  select(-anomesexato) %>% # Remover a coluna anomesexato antes de pivotar
+  pivot_longer(
+    cols = everything(), # Pivotar todas as colunas restantes
+    names_to = "categoria_cod",
+    values_to = "valor"
+  ) %>%
+  # Adicionar os nomes descritivos das categorias
+  mutate(
+    categoria = factor(nomes_categorias[categoria_cod], levels = unname(nomes_categorias)), # Garante a ordem das cores
+    # Calcular porcentagem
+    total = sum(valor),
+    porcentagem = valor / total
+  )
+
+# Criar o gráfico de pizza
+grafico_pizza_informalidade <- ggplot(dados_longos, aes(x = "", y = valor, fill = categoria)) +
+  geom_bar(stat = "identity", width = 1, color = "white") + # 'color="white"' adiciona bordas brancas
+  coord_polar(theta = "y") +
+  scale_fill_manual(values = cores_padrao, name = "Categoria de Informalidade:") +
+  # Adicionar rótulos de porcentagem
+  labs(
+    title = "Composição da Informalidade no Brasil",
+    subtitle = "Dados de Março/2025",
+    caption = "Fonte: PNADc"
+  ) +
+  theme_void() + # Tema limpo, sem eixos ou grades
+  theme(
+    legend.position = "right", # Posição da legenda
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    axis.line.x = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    axis.line.y = element_line(color = cores_padrao["cinza_claro"], linewidth = 0.5),
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic"),
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 10),
+    plot.caption = element_text(hjust = 0.5, size = 10, color = "gray50")
+  )
+
+# Exibir o gráfico
+print(grafico_pizza_informalidade)
+
+# Para salvar o gráfico (opcional)
+# ggsave("grafico_pizza_informalidade_202503.png", plot = grafico_pizza_informalidade, width = 10, height = 7, dpi = 300)
